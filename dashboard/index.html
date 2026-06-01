@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AffiliateOS — Analytics Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.8.0/umd/Recharts.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:        #0a0c10;
+    --bg2:       #111318;
+    --bg3:       #181b22;
+    --border:    #252830;
+    --border2:   #2e3340;
+    --text:      #e8eaf0;
+    --text2:     #8b92a5;
+    --text3:     #555d70;
+    --green:     #22c55e;
+    --green-bg:  rgba(34,197,94,0.1);
+    --red:       #ef4444;
+    --red-bg:    rgba(239,68,68,0.1);
+    --blue:      #3b82f6;
+    --blue-bg:   rgba(59,130,246,0.1);
+    --amber:     #f59e0b;
+    --amber-bg:  rgba(245,158,11,0.1);
+    --purple:    #a855f7;
+    --radius:    8px;
+    --font:      'Inter', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  #root { display: flex; min-height: 100vh; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+const { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } = Recharts;
+
+// ============================================================
+// MOCK DATA (replace with real API calls in production)
+// ============================================================
+const MOCK = {
+  overview: {
+    total_clicks: '48291',
+    unique_clicks: '41204',
+    conversions: '834',
+    revenue: '208500.00',
+    spend: '61200.00',
+    profit: '147300.00',
+  },
+  timeseries: Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - (29 - i));
+    const clicks = 900 + Math.round(Math.random() * 800);
+    const convs  = Math.round(clicks * (0.015 + Math.random() * 0.01));
+    const rev    = convs * (240 + Math.round(Math.random() * 60));
+    const spend  = clicks * (0.9 + Math.random() * 0.5);
+    return {
+      stat_date: d.toISOString().split('T')[0],
+      unique_clicks: clicks,
+      conversions: convs,
+      revenue: rev,
+      spend: Math.round(spend),
+      profit: rev - Math.round(spend),
+      epc: (rev / clicks).toFixed(2),
+      cvr_pct: (convs / clicks * 100).toFixed(2),
+    };
+  }),
+  campaigns: [
+    { id: '1', name: 'GLP-1 Weight Loss — FB Cold', offer_name: 'Hims Weight', status: 'active', total_unique_clicks: 18200, total_conversions: 362, total_revenue: 90500, total_spend: 27300, roi_pct: 231, network: 'Private' },
+    { id: '2', name: 'ED Treatment — FB Retarget', offer_name: 'Roman ED', status: 'active', total_unique_clicks: 11400, total_conversions: 228, total_revenue: 45600, total_spend: 14200, roi_pct: 221, network: 'ClickBank' },
+    { id: '3', name: 'Hair Loss — Native Ads', offer_name: 'Keeps Hair', status: 'active', total_unique_clicks: 7300, total_conversions: 146, total_revenue: 36500, total_spend: 12800, roi_pct: 185, network: 'CJ' },
+    { id: '4', name: 'Testosterone — Email', offer_name: 'Maximus T', status: 'paused', total_unique_clicks: 4300, total_conversions: 98, total_revenue: 35900, total_spend: 6900, roi_pct: 420, network: 'Private' },
+  ],
+  devices: [
+    { device: 'mobile',  clicks: '27840', conversions: '523', cvr_pct: '1.88' },
+    { device: 'desktop', clicks: '11200', conversions: '267', cvr_pct: '2.38' },
+    { device: 'tablet',  clicks: '2164',  conversions: '44',  cvr_pct: '2.03' },
+  ],
+  topAdSets: [
+    { ad_set_name: 'WL — 35-55F — Broad', campaign_name: 'GLP-1 Weight Loss — FB Cold', platform: 'facebook', unique_clicks: '6200', conversions: '142', revenue: '35500', spend: '9800', roi_pct: '262' },
+    { ad_set_name: 'ED — 40-60M — Interest', campaign_name: 'ED Treatment — FB Retarget', platform: 'facebook', unique_clicks: '5100', conversions: '108', revenue: '21600', spend: '7200', roi_pct: '200' },
+    { ad_set_name: 'WL — 45-65F — LAL', campaign_name: 'GLP-1 Weight Loss — FB Cold', platform: 'facebook', unique_clicks: '4800', conversions: '97', revenue: '24250', spend: '8100', roi_pct: '199' },
+    { ad_set_name: 'Hair — 25-40M — Native', campaign_name: 'Hair Loss — Native Ads', platform: 'native', unique_clicks: '3600', conversions: '72', revenue: '18000', spend: '5400', roi_pct: '233' },
+    { ad_set_name: 'T-Boost — Email Blast', campaign_name: 'Testosterone — Email', platform: 'email', unique_clicks: '2900', conversions: '68', revenue: '24800', spend: '1200', roi_pct: '1967' },
+  ],
+};
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+const fmt = {
+  currency: (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+  number:   (n) => Number(n).toLocaleString('en-US'),
+  pct:      (n) => Number(n).toFixed(1) + '%',
+  epc:      (n) => '$' + Number(n).toFixed(2),
+};
+
+function deltaClass(val) {
+  return Number(val) >= 0 ? 'text-green' : 'text-red';
+}
+
+// ============================================================
+// STYLES (injected)
+// ============================================================
+const css = `
+  .sidebar {
+    width: 220px; flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 0; position: sticky; top: 0; height: 100vh;
+  }
+  .logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; }
+  .logo-mark span { color: var(--green); }
+  .logo-sub { font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  .nav { padding: 12px 8px; flex: 1; }
+  .nav-section { font-size: 10px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 12px 4px; margin-top: 8px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text2); transition: all 0.15s; margin-bottom: 2px; }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: rgba(34,197,94,0.1); color: var(--green); }
+  .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+  .nav-dot.amber { background: var(--amber); }
+  .nav-dot.red { background: var(--red); }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); }
+
+  .main { flex: 1; overflow-y: auto; }
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); transition: all 0.15s; }
+  .btn:hover { border-color: var(--border2); color: var(--text); }
+  .btn.primary { background: var(--green); color: #000; border-color: var(--green); }
+  .btn.primary:hover { opacity: 0.9; }
+  .range-pill { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .range-pill button { padding: 5px 12px; font-size: 12px; font-weight: 500; background: none; border: none; cursor: pointer; color: var(--text3); transition: all 0.15s; }
+  .range-pill button.active { background: var(--green); color: #000; }
+  .range-pill button:hover:not(.active) { color: var(--text); }
+
+  .content { padding: 24px 28px; }
+  .page-header { margin-bottom: 24px; }
+  .page-title { font-size: 22px; font-weight: 700; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .kpi-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent); pointer-events: none; }
+  .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+  .kpi-value { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .kpi-sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .kpi-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 100px; margin-top: 6px; }
+  .kpi-badge.up { background: var(--green-bg); color: var(--green); }
+  .kpi-badge.down { background: var(--red-bg); color: var(--red); }
+
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .card-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .card-sub { font-size: 11px; color: var(--text3); margin-bottom: 18px; }
+
+  .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .chart-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 14px; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { border-bottom: 1px solid var(--border2); }
+  th { text-align: left; padding: 10px 12px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); white-space: nowrap; }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); color: var(--text2); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .td-main { color: var(--text); font-weight: 500; }
+  .td-mono { font-family: var(--mono); font-size: 12px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.amber { background: var(--amber-bg); color: var(--amber); }
+  .badge.blue { background: var(--blue-bg); color: var(--blue); }
+  .roi-bar { display: flex; align-items: center; gap: 8px; }
+  .roi-track { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; max-width: 80px; }
+  .roi-fill { height: 100%; background: var(--green); border-radius: 2px; }
+
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-amber { color: var(--amber); }
+  .text-blue { color: var(--blue); }
+  .text-mono { font-family: var(--mono); font-size: 12px; }
+
+  .tab-row { display: flex; gap: 4px; margin-bottom: 18px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab { padding: 8px 16px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
+  .status-dot.active { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .status-dot.paused { background: var(--amber); }
+  .status-dot.archived { background: var(--text3); }
+
+  .device-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .device-row { display: flex; flex-direction: column; gap: 4px; }
+  .device-header { display: flex; justify-content: space-between; font-size: 13px; }
+  .device-name { font-weight: 500; text-transform: capitalize; }
+  .device-pct { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+  .device-track { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .device-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .chart-row { grid-template-columns: 1fr; }
+    .chart-row-3 { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+`;
+
+// ============================================================
+// TOOLTIP STYLES FOR RECHARTS
+// ============================================================
+const CustomTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div style={{ background: '#1c2030', border: '1px solid #2e3340', borderRadius: 8, padding: '10px 14px', fontSize: 12 }}>
+      <div style={{ color: '#8b92a5', marginBottom: 6, fontSize: 11 }}>{label}</div>
+      {payload.map((p, i) => (
+        <div key={i} style={{ color: p.color, marginBottom: 2 }}>
+          {p.name}: <strong style={{ color: '#e8eaf0', fontFamily: 'JetBrains Mono' }}>
+            {typeof p.value === 'number' && (p.name === 'Revenue' || p.name === 'Spend' || p.name === 'Profit')
+              ? '$' + p.value.toLocaleString()
+              : p.value}
+          </strong>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ============================================================
+// SIDEBAR
+// ============================================================
+function Sidebar({ active, onNav }) {
+  const items = [
+    { id: 'overview',   label: 'Overview',       icon: '◈', dot: 'green' },
+    { id: 'campaigns',  label: 'Campaigns',      icon: '◉', dot: 'green' },
+    { id: 'adsets',     label: 'Ad Sets',        icon: '◎', dot: 'amber' },
+    { id: 'conversions',label: 'Conversions',    icon: '✦', dot: 'green' },
+  ];
+  return (
+    <div className="sidebar">
+      <div className="logo">
+        <div className="logo-mark">Affiliate<span>OS</span></div>
+        <div className="logo-sub">Tracking Dashboard</div>
+      </div>
+      <nav className="nav">
+        <div className="nav-section">Analytics</div>
+        {items.map(it => (
+          <div key={it.id}
+               className={`nav-item${active === it.id ? ' active' : ''}`}
+               onClick={() => onNav(it.id)}>
+            <span>{it.icon}</span>
+            {it.label}
+            <div className={`nav-dot ${it.dot}`} style={{ marginLeft: 'auto' }} />
+          </div>
+        ))}
+        <div className="nav-section" style={{ marginTop: 16 }}>Settings</div>
+        <div className="nav-item"><span>⚙</span> Campaigns</div>
+        <div className="nav-item"><span>🔗</span> Postback URLs</div>
+        <div className="nav-item"><span>📧</span> Email Lists</div>
+      </nav>
+      <div className="sidebar-footer">
+        <div style={{ color: '#22c55e', marginBottom: 2 }}>● Server online</div>
+        <div>Last sync: just now</div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// KPI CARDS
+// ============================================================
+function KpiCard({ label, value, sub, badge, badgeUp, color }) {
+  return (
+    <div className="kpi-card">
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value" style={{ color: color || 'var(--text)' }}>{value}</div>
+      {sub && <div className="kpi-sub">{sub}</div>}
+      {badge && <div className={`kpi-badge ${badgeUp ? 'up' : 'down'}`}>{badgeUp ? '▲' : '▼'} {badge}</div>}
+    </div>
+  );
+}
+
+// ============================================================
+// OVERVIEW PAGE
+// ============================================================
+function OverviewPage({ data, range, onRange }) {
+  const { overview, timeseries, devices } = data;
+  const roi = overview ? (((+overview.revenue - +overview.spend) / +overview.spend) * 100).toFixed(0) : 0;
+
+  const totalDeviceClicks = devices.reduce((s, d) => s + +d.clicks, 0);
+  const DEVICE_COLORS = { mobile: '#3b82f6', desktop: '#22c55e', tablet: '#a855f7' };
+
+  return (
+    <div className="content">
+      <div className="page-header">
+        <div className="page-title">Performance Overview</div>
+        <div className="page-sub">All campaigns · Last {range} days</div>
+      </div>
+
+      {overview && (
+        <div className="kpi-grid">
+          <KpiCard label="Total Revenue"    value={fmt.currency(overview.revenue)}     color="var(--green)" badge="vs prior period" badgeUp={true} sub={`Spend: ${fmt.currency(overview.spend)}`} />
+          <KpiCard label="Net Profit"       value={fmt.currency(overview.profit)}      color="var(--green)" badge={roi + '% ROI'} badgeUp={true} />
+          <KpiCard label="Conversions"      value={fmt.number(overview.conversions)}   badge="this period" badgeUp={true} />
+          <KpiCard label="Unique Clicks"    value={fmt.number(overview.unique_clicks)} sub={`${fmt.number(overview.total_clicks)} total`} />
+          <KpiCard label="EPC (Avg)"        value={fmt.epc((+overview.revenue / +overview.unique_clicks) || 0)} sub="Earnings per click" />
+          <KpiCard label="Conv. Rate"       value={fmt.pct((+overview.conversions / +overview.unique_clicks * 100) || 0)} sub="Unique click CVR" />
+        </div>
+      )}
+
+      <div className="chart-row">
+        <div className="card">
+          <div className="card-title">Revenue vs Spend</div>
+          <div className="card-sub">Daily breakdown · last {range} days</div>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={timeseries}>
+              <defs>
+                <linearGradient id="gRev" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                </linearGradient>
+                <linearGradient id="gSpend" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
+                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1e2230" />
+              <XAxis dataKey="stat_date" tick={{ fontSize: 10, fill: '#555d70' }} tickFormatter={v => v.slice(5)} />
+              <YAxis tick={{ fontSize: 10, fill: '#555d70' }} tickFormatter={v => '$' + (v/1000).toFixed(0) + 'k'} />
+              <Tooltip content={<CustomTooltip />} />
+              <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#22c55e" fill="url(#gRev)" strokeWidth={2} />
+              <Area type="monotone" dataKey="spend"   name="Spend"   stroke="#ef4444" fill="url(#gSpend)" strokeWidth={1.5} strokeDasharray="4 4" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Device Breakdown</div>
+          <div className="card-sub">Clicks by device type</div>
+          <div className="device-list">
+            {devices.map(d => (
+              <div key={d.device} className="device-row">
+                <div className="device-header">
+                  <span className="device-name">{d.device}</span>
+                  <span className="device-pct">{(+d.clicks / totalDeviceClicks * 100).toFixed(0)}% · CVR {d.cvr_pct}%</span>
+                </div>
+                <div className="device-track">
+                  <div className="device-fill" style={{
+                    width: (+d.clicks / totalDeviceClicks * 100) + '%',
+                    background: DEVICE_COLORS[d.device] || '#888'
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <div className="card-title">Conversions by Day</div>
+            <div className="card-sub" style={{ marginBottom: 12 }}>Last {range} days</div>
+            <ResponsiveContainer width="100%" height={100}>
+              <BarChart data={timeseries} barSize={6}>
+                <Bar dataKey="conversions" name="Conversions" fill="#22c55e" radius={[2,2,0,0]} />
+                <XAxis hide />
+                <YAxis hide />
+                <Tooltip content={<CustomTooltip />} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-title">EPC & Conversion Rate Trend</div>
+        <div className="card-sub">Earnings per click and CVR over time</div>
+        <ResponsiveContainer width="100%" height={180}>
+          <LineChart data={timeseries}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1e2230" />
+            <XAxis dataKey="stat_date" tick={{ fontSize: 10, fill: '#555d70' }} tickFormatter={v => v.slice(5)} />
+            <YAxis yAxisId="left"  tick={{ fontSize: 10, fill: '#555d70' }} tickFormatter={v => '$' + v} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: '#555d70' }} tickFormatter={v => v + '%'} />
+            <Tooltip content={<CustomTooltip />} />
+            <Line yAxisId="left"  type="monotone" dataKey="epc"     name="EPC"  stroke="#f59e0b" strokeWidth={2} dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="cvr_pct" name="CVR%" stroke="#a855f7" strokeWidth={2} dot={false} strokeDasharray="4 4" />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CAMPAIGNS PAGE
+// ============================================================
+function CampaignsPage({ campaigns }) {
+  return (
+    <div className="content">
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div className="page-title">Campaigns</div>
+          <div className="page-sub">{campaigns.length} campaigns tracked</div>
+        </div>
+        <button className="btn primary">+ New Campaign</button>
+      </div>
+
+      <div className="card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Status</th>
+                <th>Network</th>
+                <th>Clicks</th>
+                <th>Convs</th>
+                <th>Revenue</th>
+                <th>Spend</th>
+                <th>Profit</th>
+                <th>ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campaigns.map(c => {
+                const roi = c.roi_pct || 0;
+                const roiBarWidth = Math.min(roi / 5, 100);
+                return (
+                  <tr key={c.id}>
+                    <td>
+                      <div className="td-main">{c.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{c.offer_name}</div>
+                    </td>
+                    <td>
+                      <span className={`status-dot ${c.status}`} />
+                      <span style={{ fontSize: 12 }}>{c.status}</span>
+                    </td>
+                    <td><span className="badge blue">{c.network}</span></td>
+                    <td className="td-mono">{fmt.number(c.total_unique_clicks)}</td>
+                    <td className="td-mono">{fmt.number(c.total_conversions)}</td>
+                    <td className="td-mono text-green">{fmt.currency(c.total_revenue)}</td>
+                    <td className="td-mono text-red">{fmt.currency(c.total_spend)}</td>
+                    <td className="td-mono text-green">{fmt.currency(c.total_revenue - c.total_spend)}</td>
+                    <td>
+                      <div className="roi-bar">
+                        <span className="td-mono">{roi}%</span>
+                        <div className="roi-track">
+                          <div className="roi-fill" style={{ width: roiBarWidth + '%' }} />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// AD SETS PAGE
+// ============================================================
+function AdSetsPage({ adSets }) {
+  return (
+    <div className="content">
+      <div className="page-header">
+        <div className="page-title">Top Ad Sets</div>
+        <div className="page-sub">Ranked by revenue · last 7 days</div>
+      </div>
+
+      <div className="card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Ad Set</th>
+                <th>Platform</th>
+                <th>Clicks</th>
+                <th>Convs</th>
+                <th>Revenue</th>
+                <th>Spend</th>
+                <th>ROI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adSets.map((a, i) => (
+                <tr key={i}>
+                  <td style={{ color: 'var(--text3)', fontFamily: 'var(--mono)', fontSize: 12 }}>{String(i+1).padStart(2,'0')}</td>
+                  <td>
+                    <div className="td-main">{a.ad_set_name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{a.campaign_name}</div>
+                  </td>
+                  <td>
+                    <span className={`badge ${a.platform === 'facebook' ? 'blue' : a.platform === 'email' ? 'amber' : 'green'}`}>
+                      {a.platform}
+                    </span>
+                  </td>
+                  <td className="td-mono">{fmt.number(a.unique_clicks)}</td>
+                  <td className="td-mono">{a.conversions}</td>
+                  <td className="td-mono text-green">{fmt.currency(a.revenue)}</td>
+                  <td className="td-mono">{fmt.currency(a.spend)}</td>
+                  <td>
+                    <span className={`badge ${+a.roi_pct > 200 ? 'green' : +a.roi_pct > 100 ? 'amber' : 'red'}`}>
+                      {fmt.number(a.roi_pct)}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// CONVERSIONS PAGE
+// ============================================================
+function ConversionsPage({ timeseries }) {
+  const recent = [...timeseries].reverse().slice(0, 10);
+  const mockTxns = recent.map((d, i) => ({
+    id: `TXN-${Math.random().toString(36).slice(2,9).toUpperCase()}`,
+    date: d.stat_date,
+    campaign: ['GLP-1 Weight Loss', 'ED Treatment', 'Hair Loss'][i % 3],
+    payout: [250, 200, 250, 300, 200][i % 5],
+    status: i === 3 ? 'reversed' : 'approved',
+  }));
+
+  return (
+    <div className="content">
+      <div className="page-header">
+        <div className="page-title">Recent Conversions</div>
+        <div className="page-sub">Postback log · S2S tracking</div>
+      </div>
+
+      <div className="card">
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Campaign</th>
+                <th>Payout</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {mockTxns.map(t => (
+                <tr key={t.id}>
+                  <td className="td-mono" style={{ color: 'var(--blue)', fontSize: 11 }}>{t.id}</td>
+                  <td className="td-mono" style={{ fontSize: 11, color: 'var(--text2)' }}>{t.date}</td>
+                  <td className="td-main">{t.campaign}</td>
+                  <td className="td-mono text-green">{fmt.currency(t.payout)}</td>
+                  <td>
+                    <span className={`badge ${t.status === 'approved' ? 'green' : 'red'}`}>{t.status}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 14 }} className="card">
+        <div className="card-title">Postback URL Configuration</div>
+        <div className="card-sub">Add this URL to your affiliate network's conversion settings</div>
+        <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '12px 16px', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--green)', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+          https://yourserver.com/postback?click_id=&#123;CLICK_ID&#125;&txn=&#123;TXN_ID&#125;&payout=&#123;PAYOUT&#125;
+        </div>
+        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text3)' }}>
+          Replace <code style={{ color: 'var(--amber)' }}>yourserver.com</code> with your server's domain. 
+          The network will fire this URL on each approved conversion.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
+function App() {
+  const [page, setPage]   = useState('overview');
+  const [range, setRange] = useState(30);
+  const [data]            = useState(MOCK);
+
+  // Inject styles
+  useEffect(() => {
+    const el = document.createElement('style');
+    el.textContent = css;
+    document.head.appendChild(el);
+    return () => document.head.removeChild(el);
+  }, []);
+
+  const pageContent = {
+    overview:    <OverviewPage    data={data} range={range} onRange={setRange} />,
+    campaigns:   <CampaignsPage  campaigns={data.campaigns} />,
+    adsets:      <AdSetsPage     adSets={data.topAdSets} />,
+    conversions: <ConversionsPage timeseries={data.timeseries} />,
+  };
+
+  return (
+    <>
+      <Sidebar active={page} onNav={setPage} />
+      <div className="main">
+        <div className="topbar">
+          <div className="topbar-title">
+            {page.charAt(0).toUpperCase() + page.slice(1)}
+          </div>
+          <div className="topbar-right">
+            <div className="range-pill">
+              {[7, 14, 30].map(d => (
+                <button key={d} className={range === d ? 'active' : ''} onClick={() => setRange(d)}>
+                  {d}d
+                </button>
+              ))}
+            </div>
+            <button className="btn">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        {pageContent[page] || pageContent.overview}
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

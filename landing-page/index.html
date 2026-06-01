@@ -1,0 +1,949 @@
+s<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finally — A Weight Loss Solution That Actually Works</title>
+<meta name="description" content="Discover the telehealth solution thousands are using to finally reach their goal weight — no crash diets, no extreme exercise.">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:       #0f1117;
+  --ivory:     #faf8f3;
+  --cream:     #f2ede3;
+  --sage:      #4a7c59;
+  --sage-light:#7aad89;
+  --sage-dark: #2e5237;
+  --gold:      #c9963d;
+  --gold-light:#e8b85a;
+  --warm-gray: #8a8278;
+  --red:       #c0392b;
+  --white:     #ffffff;
+  --shadow-soft: 0 4px 24px rgba(15,17,23,0.08);
+  --shadow-card: 0 8px 40px rgba(15,17,23,0.12);
+  --radius:    12px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ivory);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ============================================================
+   STICKY HEADER
+   ============================================================ */
+.sticky-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--sage-dark);
+  color: var(--white);
+  text-align: center;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.sticky-bar strong { color: var(--gold-light); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  background: linear-gradient(160deg, var(--sage-dark) 0%, #1a3d28 60%, #0d2218 100%);
+  padding: 100px 20px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+.hero-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  background: rgba(201,150,61,0.2);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 100px;
+  margin-bottom: 28px;
+  animation: fadeInDown 0.6s ease both;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 6vw, 58px);
+  line-height: 1.18;
+  color: var(--white);
+  margin-bottom: 24px;
+  animation: fadeInDown 0.6s 0.1s ease both;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+
+.hero-subhead {
+  font-size: clamp(16px, 2.5vw, 20px);
+  color: rgba(255,255,255,0.75);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  font-weight: 300;
+  animation: fadeInDown 0.6s 0.2s ease both;
+}
+
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 44px;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.6s 0.3s ease both;
+}
+
+.hero-stat { text-align: center; }
+.hero-stat-num {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--gold-light);
+  line-height: 1;
+}
+.hero-stat-label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   EMAIL CAPTURE FORM
+   ============================================================ */
+.capture-form {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 36px 40px;
+  max-width: 520px;
+  margin: 0 auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: fadeInUp 0.6s 0.35s ease both;
+}
+
+.capture-form h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.capture-form p {
+  font-size: 14px;
+  color: var(--warm-gray);
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.form-input {
+  flex: 1;
+  height: 48px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  background: var(--ivory);
+}
+.form-input:focus { border-color: var(--sage); }
+.form-input.full { width: 100%; }
+
+.cta-btn {
+  display: block;
+  width: 100%;
+  height: 54px;
+  background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.02em;
+  position: relative;
+  overflow: hidden;
+}
+.cta-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+}
+.cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(46,82,55,0.4); }
+.cta-btn:active { transform: translateY(0); }
+
+.form-disclaimer {
+  font-size: 11px;
+  color: #bbb;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* ============================================================
+   SOCIAL PROOF STRIP
+   ============================================================ */
+.proof-strip {
+  background: var(--cream);
+  padding: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--warm-gray);
+  border-bottom: 1px solid #e0d9cc;
+}
+.proof-strip strong { color: var(--ink); }
+.proof-strip .stars { color: var(--gold); font-size: 18px; }
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.container { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+
+/* ============================================================
+   STORY SECTION
+   ============================================================ */
+.story { padding: 80px 20px; }
+.story .container { max-width: 680px; }
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 16px;
+}
+
+.story h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 4vw, 38px);
+  line-height: 1.25;
+  margin-bottom: 24px;
+}
+
+.story p {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #444;
+  margin-bottom: 20px;
+}
+
+.callout-box {
+  background: var(--cream);
+  border-left: 4px solid var(--sage);
+  border-radius: 0 8px 8px 0;
+  padding: 24px 28px;
+  margin: 32px 0;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* ============================================================
+   HOW IT WORKS
+   ============================================================ */
+.how-it-works {
+  background: var(--ink);
+  padding: 80px 20px;
+  color: var(--white);
+}
+
+.how-it-works .section-label { color: var(--gold-light); }
+
+.how-it-works h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 4vw, 38px);
+  margin-bottom: 12px;
+  color: var(--white);
+}
+
+.how-it-works .subhead {
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 56px;
+  font-size: 17px;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+}
+
+.step {
+  text-align: center;
+  padding: 0 10px;
+}
+
+.step-icon {
+  width: 64px; height: 64px;
+  background: rgba(74,124,89,0.2);
+  border: 1px solid var(--sage);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 20px;
+}
+
+.step-num {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--sage-light);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.step h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: var(--white);
+}
+
+.step p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+}
+
+/* ============================================================
+   TESTIMONIALS
+   ============================================================ */
+.testimonials { padding: 80px 20px; background: var(--white); }
+
+.testimonials h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 4vw, 36px);
+  text-align: center;
+  margin-bottom: 12px;
+}
+.testimonials .sub {
+  text-align: center;
+  color: var(--warm-gray);
+  margin-bottom: 56px;
+}
+
+.testi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.testi-card {
+  background: var(--ivory);
+  border: 1px solid #e8e2d8;
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.testi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); }
+
+.testi-stars { color: var(--gold); font-size: 16px; margin-bottom: 14px; }
+
+.testi-quote {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #333;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.testi-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--sage-light);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  color: var(--white);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.testi-name { font-weight: 600; font-size: 14px; }
+.testi-meta { font-size: 12px; color: var(--warm-gray); }
+.testi-result {
+  display: inline-block;
+  background: rgba(74,124,89,0.1);
+  color: var(--sage-dark);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 100px;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   FAQ
+   ============================================================ */
+.faq { padding: 80px 20px; }
+.faq h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(26px, 4vw, 36px);
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.faq-item {
+  border-bottom: 1px solid #e8e2d8;
+  padding: 20px 0;
+}
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  gap: 16px;
+  user-select: none;
+}
+.faq-icon {
+  width: 28px; height: 28px; flex-shrink: 0;
+  background: var(--cream);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  transition: transform 0.3s;
+  color: var(--sage);
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-answer {
+  display: none;
+  padding-top: 14px;
+  font-size: 15px;
+  color: #555;
+  line-height: 1.75;
+}
+.faq-item.open .faq-answer { display: block; }
+
+/* ============================================================
+   FINAL CTA SECTION
+   ============================================================ */
+.final-cta {
+  background: linear-gradient(135deg, var(--sage-dark) 0%, #1a3d28 100%);
+  padding: 80px 20px;
+  text-align: center;
+  color: var(--white);
+}
+
+.final-cta h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 5vw, 46px);
+  margin-bottom: 16px;
+}
+.final-cta h2 em { color: var(--gold-light); font-style: italic; }
+.final-cta p {
+  font-size: 17px;
+  color: rgba(255,255,255,0.7);
+  max-width: 540px;
+  margin: 0 auto 40px;
+}
+
+.cta-btn-lg {
+  display: inline-block;
+  padding: 18px 52px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 32px rgba(201,150,61,0.4);
+}
+.cta-btn-lg:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(201,150,61,0.5); }
+
+.guarantee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.55);
+}
+.guarantee-icon { font-size: 22px; }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer {
+  background: var(--ink);
+  color: rgba(255,255,255,0.3);
+  padding: 40px 20px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.8;
+}
+footer a { color: rgba(255,255,255,0.4); text-decoration: none; }
+footer .disclaimer {
+  max-width: 700px; margin: 0 auto 20px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+  .capture-form { padding: 28px 24px; }
+  .hero-stats { gap: 24px; }
+  .steps { grid-template-columns: 1fr; }
+  .testi-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sticky top bar -->
+<div class="sticky-bar">
+  ⚡ <strong>Limited Availability</strong> — Telehealth consultations are filling up fast. Claim your spot now.
+</div>
+
+<!-- ============================================================
+     HERO
+     ============================================================ -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">Doctor-Prescribed · 100% Online · No Insurance Needed</span>
+
+    <h1>The Weight Loss Secret<br>That <em>Actually</em> Works<br>in 2026</h1>
+
+    <p class="hero-subhead">
+      Thousands of people are finally hitting their goal weight — not with crash diets
+      or brutal gym routines, but with a personalized, doctor-supervised program
+      you can start from your couch.
+    </p>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num">94%</span>
+        <span class="hero-stat-label">Report results in 4 weeks</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">15–20%</span>
+        <span class="hero-stat-label">Average body weight lost</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">2 min</span>
+        <span class="hero-stat-label">To complete intake form</span>
+      </div>
+    </div>
+
+    <!-- LEAD CAPTURE FORM -->
+    <div class="capture-form">
+      <h2>Get Your Free Consultation</h2>
+      <p>Enter your details and we'll take you to our secure intake form.</p>
+      <form id="leadForm">
+        <div class="form-row">
+          <input class="form-input" type="text" name="first_name" id="firstName"
+                 placeholder="First name" autocomplete="given-name">
+        </div>
+        <div class="form-row">
+          <input class="form-input full" type="email" name="email" id="email"
+                 placeholder="Your email address" required autocomplete="email">
+        </div>
+        <button type="submit" class="cta-btn">
+          ✓ Check My Eligibility — It's Free
+        </button>
+      </form>
+      <p class="form-disclaimer">🔒 Your information is 100% private and never sold. No spam, ever.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Social proof strip -->
+<div class="proof-strip">
+  <span class="stars">★★★★★</span>&nbsp;
+  Rated <strong>4.9/5</strong> from over <strong>12,400 verified patients</strong>
+  &nbsp;·&nbsp; As seen in Forbes, The Today Show, and ABC News
+</div>
+
+<!-- ============================================================
+     STORY SECTION
+     ============================================================ -->
+<section class="story">
+  <div class="container">
+    <div class="section-label">Why This is Different</div>
+    <h2>You've Tried Everything.<br>This Time, It's Backed By Science.</h2>
+    <p>
+      If you've done the diets, tracked the macros, hired the trainer, and still
+      haven't been able to keep the weight off — you're not broken. The problem
+      is that traditional approaches ignore the most powerful lever: <strong>your hormones</strong>.
+    </p>
+    <p>
+      A new class of medications — originally developed to treat type 2 diabetes —
+      has emerged as a genuine breakthrough for sustainable weight loss. They work
+      by regulating the hunger signals in your brain, making it physiologically
+      easier to eat less without willpower or suffering.
+    </p>
+
+    <div class="callout-box">
+      "In clinical trials, patients lost an average of 15–20% of their body weight —
+      more than twice what's typically seen with lifestyle changes alone."
+    </div>
+
+    <p>
+      The best part? You don't need to see a doctor in person. Licensed physicians
+      can now evaluate you completely online in minutes, and if you qualify,
+      medication is shipped directly to your door — often within 2–3 days.
+    </p>
+    <p>
+      Below you'll find everything you need to know, and a free eligibility check
+      to see if this approach is right for you.
+    </p>
+  </div>
+</section>
+
+<!-- ============================================================
+     HOW IT WORKS
+     ============================================================ -->
+<section class="how-it-works">
+  <div class="container" style="text-align:center">
+    <div class="section-label">The Process</div>
+    <h2>From Your Couch to Your Goal Weight</h2>
+    <p class="subhead">The entire process takes less than 5 minutes to start.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-icon">📋</div>
+        <div class="step-num">Step 01</div>
+        <h3>Complete Intake</h3>
+        <p>Fill out a short medical questionnaire. No insurance required, no awkward waiting rooms.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">👨‍⚕️</div>
+        <div class="step-num">Step 02</div>
+        <h3>Doctor Review</h3>
+        <p>A licensed physician reviews your information and determines if you're a good candidate.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">📦</div>
+        <div class="step-num">Step 03</div>
+        <h3>Delivered to You</h3>
+        <p>If approved, your personalized prescription is sent directly to your door in discreet packaging.</p>
+      </div>
+      <div class="step">
+        <div class="step-icon">📉</div>
+        <div class="step-num">Step 04</div>
+        <h3>See Real Results</h3>
+        <p>Most patients see measurable changes within the first 2–4 weeks on the program.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TESTIMONIALS
+     ============================================================ -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-label" style="text-align:center">Real Patient Results</div>
+    <h2>What People Are Saying</h2>
+    <p class="sub">These are real stories from real patients — not actors.</p>
+
+    <div class="testi-grid">
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">
+          "I've struggled with my weight for 15 years. In just 3 months on this program
+          I've lost 34 pounds. I wish I'd known about this years ago."
+        </p>
+        <div class="testi-author">
+          <div class="testi-avatar">S</div>
+          <div>
+            <div class="testi-name">Sandra K., 48</div>
+            <div class="testi-meta">Austin, TX</div>
+            <span class="testi-result">Lost 34 lbs in 3 months</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">
+          "The online process was incredibly easy. I was skeptical, but I'm down 28 pounds
+          and my doctor says my blood pressure has improved significantly."
+        </p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#5b7faa">M</div>
+          <div>
+            <div class="testi-name">Marcus T., 52</div>
+            <div class="testi-meta">Chicago, IL</div>
+            <span class="testi-result">Lost 28 lbs in 10 weeks</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-quote">
+          "Finally something that actually works with my body instead of against it.
+          The cravings are just... gone. It feels almost too easy."
+        </p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#aa5b75">J</div>
+          <div>
+            <div class="testi-name">Jennifer R., 41</div>
+            <div class="testi-meta">Phoenix, AZ</div>
+            <span class="testi-result">Lost 22 lbs in 8 weeks</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<section class="faq">
+  <div class="container" style="max-width:680px">
+    <h2>Common Questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Do I need health insurance to qualify?
+        <span class="faq-icon">+</span>
+      </div>
+      <div class="faq-answer">
+        No. The program is available without insurance. Transparent pricing means you know
+        exactly what you'll pay — typically $200–$400/month including medication and
+        ongoing physician support.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Is this safe? Are these medications FDA-approved?
+        <span class="faq-icon">+</span>
+      </div>
+      <div class="faq-answer">
+        Yes. The medications used in this program are FDA-approved and have been prescribed
+        to millions of patients worldwide. All prescriptions are issued by licensed
+        physicians after a thorough review of your medical history.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        How quickly will I see results?
+        <span class="faq-icon">+</span>
+      </div>
+      <div class="faq-answer">
+        Most patients notice appetite reduction within the first week. Measurable weight
+        loss typically begins in weeks 2–4. Results vary by individual, starting dose,
+        and lifestyle factors.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        What if I'm not eligible?
+        <span class="faq-icon">+</span>
+      </div>
+      <div class="faq-answer">
+        The intake form is completely free. If a physician determines you're not a
+        suitable candidate, there is no charge. Your information is never sold or
+        used for marketing.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-question" onclick="toggleFaq(this)">
+        Can I cancel anytime?
+        <span class="faq-icon">+</span>
+      </div>
+      <div class="faq-answer">
+        Yes. There are no long-term contracts or hidden fees. You can pause or cancel
+        your subscription at any time directly from your patient portal.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============================================================
+     FINAL CTA
+     ============================================================ -->
+<section class="final-cta">
+  <div class="container">
+    <h2>Ready to <em>Finally</em> See Results?</h2>
+    <p>
+      Your free consultation takes less than 2 minutes. No insurance, no office visit,
+      no obligation — just answers.
+    </p>
+    <a href="#" id="mainCtaBtn" class="cta-btn-lg">
+      Check My Eligibility — Free →
+    </a>
+    <div class="guarantee">
+      <span class="guarantee-icon">🔒</span>
+      HIPAA Compliant &nbsp;·&nbsp; No Credit Card Required &nbsp;·&nbsp; Results Guaranteed
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <p class="disclaimer">
+    DISCLAIMER: Results depicted are not typical. Individual results will vary based on
+    factors including starting weight, medical history, adherence to the program, and
+    other variables. This website is not medical advice. Always consult with a licensed
+    healthcare professional before starting any weight loss program or medication.
+    This site contains affiliate links — we may receive compensation when you click
+    through and make a purchase, at no additional cost to you.
+  </p>
+  <p>
+    <a href="#">Privacy Policy</a> &nbsp;|&nbsp;
+    <a href="#">Terms of Use</a> &nbsp;|&nbsp;
+    <a href="#">Affiliate Disclosure</a> &nbsp;|&nbsp;
+    <a href="mailto:support@example.com">Contact</a>
+  </p>
+  <p style="margin-top:12px;">© 2026 All Rights Reserved.</p>
+</footer>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+(function() {
+  // ---- Parse URL params (click_id, sub1-5 from tracker) ----
+  const params = new URLSearchParams(window.location.search);
+  const clickId   = params.get('click_id') || '';
+  const campaignId = params.get('campaign_id') || '';
+
+  // ---- FAQ accordion ----
+  function toggleFaq(el) {
+    const item = el.closest('.faq-item');
+    item.classList.toggle('open');
+  }
+  window.toggleFaq = toggleFaq;
+
+  // ---- Lead capture form ----
+  const form = document.getElementById('leadForm');
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const email     = document.getElementById('email').value.trim();
+      const firstName = document.getElementById('firstName').value.trim();
+      if (!email) return;
+
+      // Submit lead to backend
+      try {
+        await fetch('/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, first_name: firstName, campaign_id: campaignId, click_id: clickId }),
+        });
+      } catch (_) { /* non-blocking */ }
+
+      // Redirect to offer (affiliate link)
+      // The OFFER_URL below is replaced at deploy time or loaded dynamically
+      const offerUrl = window.AFFILIATE_OFFER_URL || '#';
+      const dest = new URL(offerUrl, window.location.origin);
+      if (clickId) dest.searchParams.set('click_id', clickId);
+      window.location.href = dest.toString();
+    });
+  }
+
+  // ---- Main CTA button ----
+  const mainBtn = document.getElementById('mainCtaBtn');
+  if (mainBtn) {
+    mainBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('email').focus();
+      document.querySelector('.capture-form').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // ---- Scroll-triggered fade-ins ----
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .testi-card, .faq-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+
+})();
+</script>
+</body>
+</html>
