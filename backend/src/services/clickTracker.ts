@@ -1,11 +1,8 @@
-import { Request } from 'express';
+import type { Request } from 'express';
 import { UAParser } from 'ua-parser-js';
 import geoip from 'geoip-lite';
-import { query } from '../db';
+import { query } from '../db.js';
 
-// ---------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------
 export interface ClickRecord {
   id: string;
   campaign_id: string;
@@ -31,9 +28,6 @@ export interface ClickRecord {
   clicked_at: string;
 }
 
-// ---------------------------------------------------------------
-// Bot detection heuristics
-// ---------------------------------------------------------------
 const BOT_UA_PATTERNS = [
   /bot/i, /crawler/i, /spider/i, /scraper/i,
   /headless/i, /phantom/i, /selenium/i, /puppeteer/i,
@@ -45,9 +39,6 @@ function detectBot(ua: string): boolean {
   return BOT_UA_PATTERNS.some(p => p.test(ua));
 }
 
-// ---------------------------------------------------------------
-// Parse device type from UA
-// ---------------------------------------------------------------
 function parseDevice(ua: string): 'desktop' | 'mobile' | 'tablet' | 'unknown' {
   const parser = new UAParser(ua);
   const device = parser.getDevice();
@@ -57,9 +48,6 @@ function parseDevice(ua: string): 'desktop' | 'mobile' | 'tablet' | 'unknown' {
   return 'unknown';
 }
 
-// ---------------------------------------------------------------
-// Get real IP (works behind proxies/CloudFlare)
-// ---------------------------------------------------------------
 function getRealIp(req: Request): string {
   const forwarded = req.headers['x-forwarded-for'];
   if (forwarded) {
@@ -69,9 +57,6 @@ function getRealIp(req: Request): string {
   return req.socket.remoteAddress || '0.0.0.0';
 }
 
-// ---------------------------------------------------------------
-// Check if this IP + campaign has clicked in the last 24h
-// ---------------------------------------------------------------
 async function isUniqueClick(ip: string, campaignId: string): Promise<boolean> {
   const rows = await query<{ count: string }>(
     `SELECT COUNT(*) as count FROM clicks
@@ -83,9 +68,6 @@ async function isUniqueClick(ip: string, campaignId: string): Promise<boolean> {
   return parseInt(rows[0]?.count ?? '0') === 0;
 }
 
-// ---------------------------------------------------------------
-// Select A/B variant based on campaign weights
-// ---------------------------------------------------------------
 async function selectVariant(campaignId: string): Promise<string> {
   const variants = await query<{ variant: string; weight: number }>(
     `SELECT variant, weight FROM lp_variants
@@ -94,32 +76,29 @@ async function selectVariant(campaignId: string): Promise<string> {
   );
   if (!variants.length) return 'A';
 
-  const total = variants.reduce((sum, v) => sum + v.weight, 0);
+  const total = variants.reduce((sum: number, v: { variant: string; weight: number }) => sum + v.weight, 0);
   let rand = Math.random() * total;
   for (const v of variants) {
     rand -= v.weight;
     if (rand <= 0) return v.variant;
   }
-  return variants[0].variant;
+  return variants[0]?.variant ?? 'A';
 }
 
-// ---------------------------------------------------------------
-// Main: record a click and return the click ID + offer URL
-// ---------------------------------------------------------------
 export async function recordClick(
   req: Request,
   campaignSlug: string
 ): Promise<{ clickId: string; offerUrl: string; variant: string } | null> {
 
-  // 1. Look up campaign
   const campaigns = await query<{
     id: string; offer_url: string; status: string;
   }>(
     `SELECT id, offer_url, status FROM campaigns WHERE slug = $1`,
     [campaignSlug]
   );
-  if (!campaigns.length || campaigns[0].status !== 'active') return null;
+  if (!campaigns.length || campaigns[0]?.status !== 'active') return null;
   const campaign = campaigns[0];
+  if (!campaign) return null;
 
   const ip        = getRealIp(req);
   const ua        = req.headers['user-agent'] || '';
@@ -130,7 +109,6 @@ export async function recordClick(
   const geo     = geoip.lookup(ip);
   const variant = await selectVariant(campaign.id);
 
-  // 2. Insert click
   const rows = await query<{ id: string }>(
     `INSERT INTO clicks (
        campaign_id, sub1, sub2, sub3, sub4, sub5,
@@ -163,12 +141,11 @@ export async function recordClick(
     ]
   );
 
-  const clickId = rows[0].id;
+  const clickId = rows[0]?.id;
+  if (!clickId) return null;
 
-  // 3. Append click_id to offer URL as sub-ID for postback matching
   const url = new URL(campaign.offer_url);
   url.searchParams.set('click_id', clickId);
-  // Also pass subs through
   if (req.query.sub1) url.searchParams.set('sub1', String(req.query.sub1));
   if (req.query.sub2) url.searchParams.set('sub2', String(req.query.sub2));
 

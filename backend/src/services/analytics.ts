@@ -1,8 +1,5 @@
-import { query } from '../db';
+import { query } from '../db.js';
 
-// ---------------------------------------------------------------
-// Dashboard overview (last N days)
-// ---------------------------------------------------------------
 export async function getOverviewStats(days = 30) {
   const rows = await query<{
     total_clicks: string;
@@ -31,9 +28,6 @@ export async function getOverviewStats(days = 30) {
   return rows[0];
 }
 
-// ---------------------------------------------------------------
-// Daily timeseries (clicks, conversions, revenue, spend)
-// ---------------------------------------------------------------
 export async function getDailyTimeseries(days = 30, campaignId?: string) {
   const campaignFilter = campaignId ? 'AND cl.campaign_id = $2' : '';
   const params: unknown[] = [days];
@@ -78,18 +72,10 @@ export async function getDailyTimeseries(days = 30, campaignId?: string) {
   );
 }
 
-// ---------------------------------------------------------------
-// Per-campaign summary
-// ---------------------------------------------------------------
 export async function getCampaignSummaries() {
-  return query(
-    `SELECT * FROM v_campaign_summary ORDER BY total_revenue DESC`
-  );
+  return query(`SELECT * FROM v_campaign_summary ORDER BY total_revenue DESC`);
 }
 
-// ---------------------------------------------------------------
-// Top performers: by ad set
-// ---------------------------------------------------------------
 export async function getTopAdSets(days = 7, limit = 10) {
   return query<{
     ad_set_name: string;
@@ -126,9 +112,6 @@ export async function getTopAdSets(days = 7, limit = 10) {
   );
 }
 
-// ---------------------------------------------------------------
-// Geographic breakdown
-// ---------------------------------------------------------------
 export async function getGeoBreakdown(days = 30, campaignId?: string) {
   const campaignFilter = campaignId ? 'AND campaign_id = $2' : '';
   const params: unknown[] = [days];
@@ -156,9 +139,6 @@ export async function getGeoBreakdown(days = 30, campaignId?: string) {
   );
 }
 
-// ---------------------------------------------------------------
-// Device breakdown
-// ---------------------------------------------------------------
 export async function getDeviceBreakdown(days = 30) {
   return query<{ device: string; clicks: string; conversions: string; cvr_pct: string }>(
     `SELECT
@@ -179,9 +159,6 @@ export async function getDeviceBreakdown(days = 30) {
   );
 }
 
-// ---------------------------------------------------------------
-// Hourly heatmap (which hours convert best)
-// ---------------------------------------------------------------
 export async function getHourlyHeatmap(days = 14) {
   return query<{ hour: string; day_of_week: string; conversions: string }>(
     `SELECT

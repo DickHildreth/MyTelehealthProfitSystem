@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express';
-import { recordClick } from '../services/clickTracker';
-import { processPostback, reverseConversion } from '../services/conversionTracker';
+import { Router } from 'express';
+import type { Request, Response } from 'express';
+import { recordClick } from './services/clickTracker.js';
+import { processPostback, reverseConversion } from './services/conversionTracker.js';
 import {
   getOverviewStats,
   getDailyTimeseries,
@@ -9,22 +10,15 @@ import {
   getGeoBreakdown,
   getDeviceBreakdown,
   getHourlyHeatmap,
-} from '../services/analytics';
-import { query } from '../db';
+} from './services/analytics.js';
+import { query } from './db.js';
 
 const router = Router();
 
-// ---------------------------------------------------------------
-// TRACKING: Click redirect
-// GET /track/:campaignSlug?sub1=...&sub2=...
-// ---------------------------------------------------------------
 router.get('/track/:slug', async (req: Request, res: Response) => {
   try {
     const result = await recordClick(req, req.params.slug);
-    if (!result) {
-      return res.status(404).send('Campaign not found or inactive');
-    }
-    // Redirect to offer with click_id appended
+    if (!result) return res.status(404).send('Campaign not found or inactive');
     return res.redirect(302, result.offerUrl);
   } catch (err) {
     console.error('Click tracking error:', err);
@@ -32,17 +26,13 @@ router.get('/track/:slug', async (req: Request, res: Response) => {
   }
 });
 
-// ---------------------------------------------------------------
-// TRACKING: Postback (S2S from network)
-// GET /postback?click_id=XXX&txn=YYY&payout=ZZZ
-// ---------------------------------------------------------------
 router.get('/postback', async (req: Request, res: Response) => {
   try {
     const result = await processPostback({
       click_id:       req.query.click_id    as string,
-      network_txn_id: req.query.txn         as string || req.query.transaction_id as string,
+      network_txn_id: (req.query.txn as string) || req.query.transaction_id as string,
       campaign_slug:  req.query.campaign    as string,
-      payout:         req.query.payout      as string || req.query.amount as string,
+      payout:         (req.query.payout as string) || req.query.amount as string,
       status:         req.query.status      as string,
       sub1:           req.query.sub1        as string,
       sub2:           req.query.sub2        as string,
@@ -55,23 +45,17 @@ router.get('/postback', async (req: Request, res: Response) => {
   }
 });
 
-// ---------------------------------------------------------------
-// TRACKING: Chargeback / reversal
-// POST /postback/reverse
-// ---------------------------------------------------------------
 router.post('/postback/reverse', async (req: Request, res: Response) => {
-  const { network_txn_id } = req.body;
+  const { network_txn_id } = req.body as { network_txn_id: string };
   if (!network_txn_id) return res.status(400).json({ error: 'network_txn_id required' });
   const ok = await reverseConversion(network_txn_id);
   return res.json({ success: ok });
 });
 
-// ---------------------------------------------------------------
-// LEAD CAPTURE
-// POST /leads
-// ---------------------------------------------------------------
 router.post('/leads', async (req: Request, res: Response) => {
-  const { email, first_name, campaign_id, click_id } = req.body;
+  const { email, first_name, campaign_id, click_id } = req.body as {
+    email: string; first_name?: string; campaign_id?: string; click_id?: string;
+  };
   if (!email) return res.status(400).json({ error: 'email required' });
   try {
     await query(
@@ -86,10 +70,6 @@ router.post('/leads', async (req: Request, res: Response) => {
     return res.status(500).json({ success: false });
   }
 });
-
-// ---------------------------------------------------------------
-// ANALYTICS API
-// ---------------------------------------------------------------
 
 router.get('/api/stats/overview', async (req: Request, res: Response) => {
   const days = parseInt(req.query.days as string) || 30;
@@ -135,27 +115,26 @@ router.get('/api/stats/heatmap', async (req: Request, res: Response) => {
   return res.json(data);
 });
 
-// ---------------------------------------------------------------
-// CAMPAIGN CRUD
-// ---------------------------------------------------------------
-
-router.get('/api/campaigns', async (_req, res) => {
+router.get('/api/campaigns', async (_req: Request, res: Response) => {
   const rows = await query('SELECT * FROM campaigns ORDER BY created_at DESC');
   return res.json(rows);
 });
 
 router.post('/api/campaigns', async (req: Request, res: Response) => {
-  const { name, slug, offer_url, offer_name, network, payout, daily_budget } = req.body;
+  const { name, slug, offer_url, offer_name, network, payout, daily_budget } = req.body as {
+    name: string; slug: string; offer_url: string; offer_name?: string;
+    network?: string; payout?: number; daily_budget?: number;
+  };
   const rows = await query<{ id: string }>(
     `INSERT INTO campaigns (name, slug, offer_url, offer_name, network, payout, daily_budget)
      VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
     [name, slug, offer_url, offer_name, network, payout || 0, daily_budget || null]
   );
-  return res.json({ id: rows[0].id });
+  return res.json({ id: rows[0]?.id });
 });
 
 router.patch('/api/campaigns/:id', async (req: Request, res: Response) => {
-  const { status } = req.body;
+  const { status } = req.body as { status: string };
   await query(
     `UPDATE campaigns SET status = $1, updated_at = NOW() WHERE id = $2`,
     [status, req.params.id]
@@ -163,9 +142,6 @@ router.patch('/api/campaigns/:id', async (req: Request, res: Response) => {
   return res.json({ success: true });
 });
 
-// ---------------------------------------------------------------
-// HEALTH CHECK
-// ---------------------------------------------------------------
-router.get('/health', (_req, res) => res.json({ status: 'ok', ts: new Date() }));
+router.get('/health', (_req: Request, res: Response) => res.json({ status: 'ok', ts: new Date() }));
 
 export default router;
