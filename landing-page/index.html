@@ -906,7 +906,7 @@ footer .disclaimer {
 
       // Submit lead to backend
       try {
-        await fetch('/leads', {
+        await fetch('https://track.telehealthcaresolutions.com/leads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, first_name: firstName, campaign_id: campaignId, click_id: clickId }),
