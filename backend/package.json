@@ -14,7 +14,7 @@
     "express-rate-limit": "^7.1.5",
     "geoip-lite": "^1.4.10",
     "helmet": "^7.1.0",
-    "nodemailer": "^6.9.7",
+    "nodemailer": "^10.0.1",
     "pg": "^8.11.3",
     "ua-parser-js": "^1.0.37",
     "uuid": "^9.0.0"
